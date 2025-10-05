@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Modern EliteStore Brand Theme - Vibrant & Professional */
+
+/* Card shadow and hover effect */
+.card {
+  @apply shadow-xl rounded-2xl bg-white transition-all duration-300 border border-brand-neutral-200 hover:shadow-2xl hover:scale-105;
+}
+
+/* Price styling */
+.price {
+  @apply text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary-700 to-brand-secondary-600 tracking-wide;
+}
+
+/* Add button styling */
+.add-btn {
+  @apply bg-gradient-to-r from-brand-accent-500 to-brand-accent-600 hover:from-brand-accent-600 hover:to-brand-accent-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105;
+}
+
+/* Stock text */
+.stock {
+  @apply text-brand-neutral-500 text-sm mt-1 font-medium;
+}
+
+/* Product title */
+.product-title {
+  @apply text-xl font-bold mb-2 text-brand-primary-800 hover:text-brand-accent-600 transition-colors duration-300;
+}
+
+/* Product description */
+.product-desc {
+  @apply text-brand-neutral-600 mb-3 text-sm leading-relaxed;
+}
+
+/* Rating stars */
+.rating-stars {
+  @apply text-brand-accent-500 mr-1;
+}
+
+/* Responsive grid for product cards */
+.products-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8 p-6;
+}
+
+/* Professional gradient background */
+body {
+  @apply bg-gradient-to-br from-brand-neutral-50 via-white to-brand-primary-50 min-h-screen;
+}
+
+/* Additional brand theme utilities */
+.btn-primary {
+  @apply bg-gradient-to-r from-brand-primary-600 to-brand-primary-700 text-white hover:from-brand-primary-700 hover:to-brand-primary-800 transition-all duration-300 shadow-lg hover:shadow-xl;
+}
+
+.btn-secondary {
+  @apply bg-gradient-to-r from-brand-secondary-500 to-brand-secondary-600 text-white hover:from-brand-secondary-600 hover:to-brand-secondary-700 transition-all duration-300 shadow-lg hover:shadow-xl;
+}
+
+.text-brand-primary {
+  @apply text-brand-primary-700;
+}
+
+.text-brand-secondary {
+  @apply text-brand-neutral-600;
+}
+
+.border-brand {
+  @apply border-brand-neutral-300;
+}
+
+/* Custom animations for the enhanced hero header */
+@keyframes gradient-x {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 60px rgba(59, 130, 246, 0.4);
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 3s ease infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+/* Enhanced fade-in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
+
+/* Slide up animation */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.8s ease-out;
+}
