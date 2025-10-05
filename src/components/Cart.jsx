@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useApp } from '../context/AppContext.jsx';
+import { cartAPI } from '../services/api.js';
 import CheckoutEnhanced from './CheckoutEnhanced.jsx';
 
 const Cart = ({ isOpen, onClose }) => {
@@ -14,14 +15,21 @@ const Cart = ({ isOpen, onClose }) => {
     }, 0);
   };
 
-  const updateQuantity = (productId, newQuantity) => {
-    if (newQuantity <= 0) {
-      dispatch({ type: 'REMOVE_FROM_CART', payload: productId });
-    } else {
-      dispatch({ 
-        type: 'UPDATE_CART_QUANTITY', 
-        payload: { productId, quantity: newQuantity } 
-      });
+  const updateQuantity = async (productId, newQuantity) => {
+    try {
+      if (newQuantity <= 0) {
+        await cartAPI.removeItem(productId);
+        dispatch({ type: 'REMOVE_FROM_CART', payload: productId });
+      } else {
+        await cartAPI.updateItem(productId, newQuantity);
+        dispatch({
+          type: 'UPDATE_CART_QUANTITY',
+          payload: { productId, quantity: newQuantity }
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update cart item:', error);
+      alert('Failed to update item quantity. Please try again.');
     }
   };
 

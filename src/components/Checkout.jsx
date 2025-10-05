@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, CreditCard, Truck, Shield, CheckCircle, ArrowLeft, MapPin, Phone, Mail, Calendar, Lock } from 'lucide-react';
 import { useApp } from '../context/AppContext.jsx';
+import { orderAPI } from '../services/api.js';
 
 const Checkout = ({ isOpen, onClose, onBack }) => {
   const { state, dispatch } = useApp();
@@ -81,10 +82,36 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
 
     setIsProcessing(true);
 
-    // Simulate payment processing
-    setTimeout(() => {
+    try {
+      const orderData = {
+        items: state.cart.map(item => {
+          const product = state.products.find(p => p.id === item.productId);
+          return {
+            product: item.productId, // Backend expects 'product' field with ObjectId
+            quantity: item.quantity,
+            price: product ? product.price : 0
+          };
+        }),
+        total: getFinalTotal(),
+        subtotal: getTotalPrice(),
+        shipping: getShippingCost(),
+        tax: getTaxAmount(),
+        shippingAddress: shippingInfo,
+        paymentInfo: {
+          method: paymentInfo.method,
+          ...(paymentInfo.method === 'card' && {
+            cardLast4: paymentInfo.cardNumber.slice(-4)
+          }),
+          ...(paymentInfo.method === 'upi' && {
+            upiId: paymentInfo.upiId
+          })
+        }
+      };
+
+      const data = await orderAPI.create(orderData);
+
       const newOrder = {
-        id: `ORD-${Date.now()}`,
+        id: data.order._id,
         userId: state.currentUser?.id || 'guest',
         userName: shippingInfo.fullName,
         items: state.cart.map(item => {
@@ -98,22 +125,14 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
           };
         }),
         shippingInfo,
-        paymentInfo: {
-          method: paymentInfo.method,
-          ...(paymentInfo.method === 'card' && {
-            cardLast4: paymentInfo.cardNumber.slice(-4)
-          }),
-          ...(paymentInfo.method === 'upi' && {
-            upiId: paymentInfo.upiId
-          })
-        },
+        paymentInfo: orderData.paymentInfo,
         subtotal: getTotalPrice(),
         shipping: getShippingCost(),
         tax: getTaxAmount(),
         total: getFinalTotal(),
-        status: 'confirmed',
-        paymentStatus: 'paid',
-        date: new Date().toISOString(),
+        status: data.order.status || 'confirmed',
+        paymentStatus: data.order.paymentStatus || 'paid',
+        date: data.order.createdAt || new Date().toISOString(),
         estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         cancellationInfo: {
           canCancel: true,
@@ -139,11 +158,15 @@ const Checkout = ({ isOpen, onClose, onBack }) => {
 
       dispatch({ type: 'ADD_ORDER', payload: newOrder });
       dispatch({ type: 'CLEAR_CART' });
-      
+
       setOrderDetails(newOrder);
       setOrderPlaced(true);
+    } catch (error) {
+      console.error('Order creation failed:', error);
+      alert('Failed to place order. Please try again.');
+    } finally {
       setIsProcessing(false);
-    }, 3000);
+    }
   };
 
   const formatCardNumber = (value) => {

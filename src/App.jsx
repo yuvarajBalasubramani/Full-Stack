@@ -11,6 +11,7 @@ import AuthModal from './components/AuthModal.jsx';
 import DatabaseTest from './pages/DatabaseTest.jsx';
 import OrderHistory from './components/OrderHistory.jsx';
 import OrderTracking from './components/OrderTracking.jsx';
+import ConnectionStatus from './components/ConnectionStatus.jsx';
 
 // Admin dashboard (full-page)
 import AdminLayout from './layout/AdminLayout.jsx';
@@ -25,6 +26,7 @@ function App() {
     <AppProvider>
       <Router>
         <div className="min-h-screen bg-gradient-to-br from-brand-neutral-50 via-white to-brand-primary-50">
+          <ConnectionStatus />
           <Navigation 
             onCartOpen={() => setIsCartOpen(true)}
             onAuthOpen={() => setIsAuthOpen(true)}

@@ -7,14 +7,29 @@ const createToken = (userId) => {
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
+
+    console.log('Registration attempt:', { name, email, role });
+
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Please provide all required fields' });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already in use' });
     }
 
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ 
+      name, 
+      email, 
+      password,
+      role: role || 'user' // Include role from request
+    });
+    
+    console.log('User created successfully:', user._id);
+    
     const token = createToken(user._id);
 
     res
@@ -26,7 +41,9 @@ exports.register = async (req, res) => {
       })
       .status(201)
       .json({
+        message: 'Registration successful',
         user: {
+          _id: user._id,
           id: user._id,
           name: user.name,
           email: user.email,
@@ -35,23 +52,36 @@ exports.register = async (req, res) => {
       });
   } catch (error) {
     console.error('Register error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      message: error.message || 'Server error during registration',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    console.log('Login attempt:', { email });
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Please provide email and password' });
+    }
+
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
+
+    console.log('Login successful:', user._id);
 
     const token = createToken(user._id);
 
@@ -63,18 +93,23 @@ exports.login = async (req, res) => {
         maxAge: 7 * 24 * 60 * 60 * 1000
       })
       .json({
+        message: 'Login successful',
         user: {
+          _id: user._id,
           id: user._id,
           name: user.name,
           email: user.email,
           role: user.role,
-          orderCount: user.orderCount,
-          totalSpent: user.totalSpent
+          orderCount: user.orderCount || 0,
+          totalSpent: user.totalSpent || 0
         }
       });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      message: error.message || 'Server error during login',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

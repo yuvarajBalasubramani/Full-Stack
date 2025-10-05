@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import ProductCard from './ProductCard.jsx';
 import { useApp } from '../context/AppContext';
+import { cartAPI } from '../services/api.js';
 import { Filter, SortAsc, SortDesc, Grid, List } from 'lucide-react';
 
 const ProductGrid = () => {
@@ -78,20 +79,27 @@ const ProductGrid = () => {
     }
   };
 
-  const handleAddToCart = (product) => {
-    dispatch({
-      type: 'ADD_TO_CART',
-      payload: {
-        productId: product.id,
-        quantity: 1
-      }
-    });
-    
-    // Show a success message (optional)
-    console.log(`✅ Added ${product.name} to cart`);
-    
-    // You can also add a toast notification here if you have one
-    alert(`✅ ${product.name} added to cart!`);
+  const handleAddToCart = async (product) => {
+    try {
+      await cartAPI.addItem(product.id, 1);
+
+      dispatch({
+        type: 'ADD_TO_CART',
+        payload: {
+          productId: product.id,
+          quantity: 1
+        }
+      });
+
+      // Show a success message (optional)
+      console.log(`✅ Added ${product.name} to cart`);
+
+      // You can also add a toast notification here if you have one
+      alert(`✅ ${product.name} added to cart!`);
+    } catch (error) {
+      console.error('Failed to add item to cart:', error);
+      alert('Failed to add item to cart. Please try again.');
+    }
   };
 
   return (

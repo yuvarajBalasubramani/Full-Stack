@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Eye, EyeOff, User, Mail, Lock, Calendar, Camera, Shield, UserCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext.jsx';
+import { authAPI } from '../services/api.js';
 
 const AuthModal = ({ isOpen, onClose }) => {
   const { state, dispatch } = useApp();
@@ -36,31 +37,38 @@ const AuthModal = ({ isOpen, onClose }) => {
     setError('');
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    const user = state.users.find(u => 
-      u.email.toLowerCase() === loginForm.email.toLowerCase() && 
-      u.password === loginForm.password &&
-      u.role === loginForm.role
-    );
+    try {
+      const data = await authAPI.login({
+        email: loginForm.email,
+        password: loginForm.password
+      });
 
-    if (user) {
-      dispatch({ type: 'LOGIN', payload: user });
-      setSuccess(`Login successful! Welcome back, ${user.name} (${user.role})`);
+      const transformedUser = {
+        id: data.user._id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role || 'user',
+        avatar: data.user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=random`
+      };
+
+      dispatch({ type: 'LOGIN', payload: transformedUser });
+      setSuccess(`Login successful! Welcome back, ${transformedUser.name}`);
       setTimeout(() => {
         onClose();
         setLoginForm({ email: '', password: '', role: 'user' });
         setSuccess('');
       }, 1500);
-    } else {
-      setError('Invalid email, password, or role selection');
+    } catch (error) {
+      setError(error.message || 'Login failed. Please try again.');
     }
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -76,33 +84,32 @@ const AuthModal = ({ isOpen, onClose }) => {
       return;
     }
 
-    if (state.users.find(u => u.email.toLowerCase() === registerForm.email.toLowerCase())) {
-      setError('Email already exists');
-      return;
+    try {
+      const data = await authAPI.register({
+        name: registerForm.name,
+        email: registerForm.email,
+        password: registerForm.password,
+        role: registerForm.role
+      });
+
+      const transformedUser = {
+        id: data.user._id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role || 'user',
+        avatar: data.user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=random`
+      };
+
+      dispatch({ type: 'REGISTER', payload: transformedUser });
+      setSuccess('Registration successful! Welcome to EliteStore!');
+      setTimeout(() => {
+        onClose();
+        setRegisterForm({ name: '', email: '', password: '', confirmPassword: '', role: 'user' });
+        setSuccess('');
+      }, 1500);
+    } catch (error) {
+      setError(error.message || 'Registration failed. Please try again.');
     }
-
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
-      name: registerForm.name,
-      email: registerForm.email,
-      password: registerForm.password,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(registerForm.name)}&background=random`,
-      joinDate: new Date().toISOString().split('T')[0],
-      lastLogin: new Date().toISOString(),
-      totalSpent: 0,
-      orderCount: 0,
-      status: 'active',
-      role: registerForm.role
-    };
-
-    dispatch({ type: 'REGISTER', payload: newUser });
-    setSuccess('Registration successful! Welcome to EliteStore!');
-    setTimeout(() => {
-      onClose();
-      setRegisterForm({ name: '', email: '', password: '', confirmPassword: '', role: 'user' });
-      setSuccess('');
-    }, 1500);
   };
 
   const toggleMode = () => {

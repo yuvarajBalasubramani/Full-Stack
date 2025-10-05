@@ -90,15 +90,22 @@ const Navigation = ({ onCartOpen, onAuthOpen }) => {
             {state.currentUser ? (
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2 p-2 text-white bg-white bg-opacity-10 rounded-lg backdrop-blur-sm border border-white border-opacity-20">
-                  <img
-                    src={state.currentUser.avatar}
-                    alt={state.currentUser.name}
-                    className="w-8 h-8 rounded-full border-2 border-white border-opacity-30"
-                  />
+                  {state.currentUser.avatar && (
+                    <img
+                      src={state.currentUser.avatar}
+                      alt={state.currentUser.name}
+                      className="w-8 h-8 rounded-full border-2 border-white border-opacity-30"
+                    />
+                  )}
+                  {!state.currentUser.avatar && (
+                    <div className="w-8 h-8 rounded-full border-2 border-white border-opacity-30 bg-brand-primary-500 flex items-center justify-center text-white font-bold text-sm">
+                      {state.currentUser.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="hidden sm:block">
                     <div className="text-sm font-medium text-white">{state.currentUser.name}</div>
                     <div className="text-xs text-brand-accent-200">
-                      {state.currentUser.orderCount} orders • ₹{state.currentUser.totalSpent.toFixed(2)}
+                      {state.currentUser.orderCount || 0} orders • ₹{(state.currentUser.totalSpent || 0).toFixed(2)}
                     </div>
                   </div>
                 </div>

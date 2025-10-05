@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { products as mockProducts } from '../data/mockData.js';
-import { productAPI, authAPI } from '../services/api.js';
+import { productAPI, authAPI, cartAPI, orderAPI } from '../services/api.js';
 
 // Helper functions for localStorage
 const saveToLocalStorage = (key, data) => {
@@ -212,6 +212,24 @@ const appReducer = (state, action) => {
           ...state.userActivities
         ] : state.userActivities
       };
+    case 'LOAD_USER_DATA':
+      return {
+        ...state,
+        currentUser: action.payload.user,
+        cart: action.payload.cart,
+        orders: action.payload.orders,
+        userActivities: [
+          {
+            id: Date.now().toString(),
+            userId: action.payload.user.id,
+            userName: action.payload.user.name,
+            type: 'login',
+            description: 'User logged in',
+            timestamp: new Date().toISOString()
+          },
+          ...state.userActivities
+        ]
+      };
     case 'CLEAR_ALL_DATA':
       // Clear all localStorage data
       localStorage.removeItem('elitestore_users');
@@ -236,11 +254,13 @@ const AppContext = createContext(null);
 
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
+  const [isInitializing, setIsInitializing] = useState(true);
 
-  // Fetch products from MongoDB on mount
+  // Initialize app - fetch products and check auth
   useEffect(() => {
-    const fetchProducts = async () => {
+    const initializeApp = async () => {
       try {
+        // Fetch products
         dispatch({ type: 'SET_LOADING', payload: true });
         const data = await productAPI.getAll();
         
@@ -264,16 +284,11 @@ export const AppProvider = ({ children }) => {
         console.error('❌ Error fetching products:', error);
         dispatch({ type: 'SET_ERROR', payload: error.message });
         // Keep using mock data if API fails
+        dispatch({ type: 'SET_LOADING', payload: false });
         console.log('⚠️ Using mock data as fallback');
       }
-    };
 
-    fetchProducts();
-  }, []);
-
-  // Check if user is still logged in on mount
-  useEffect(() => {
-    const checkAuth = async () => {
+      // Check authentication
       const savedUser = loadFromLocalStorage('elitestore_currentUser', null);
       if (savedUser) {
         try {
@@ -287,7 +302,59 @@ export const AppProvider = ({ children }) => {
               email: data.user.email,
               role: data.user.role
             };
-            dispatch({ type: 'LOGIN', payload: transformedUser });
+
+            // Load user's cart and orders from backend
+            try {
+              const cartData = await cartAPI.get();
+              const transformedCart = cartData.cart?.items?.map(item => ({
+                productId: item.product._id.toString(),
+                quantity: item.quantity,
+                addedAt: new Date().toISOString()
+              })) || [];
+
+              const ordersData = await orderAPI.getAll();
+              const transformedOrders = ordersData.orders?.map(order => ({
+                id: order._id,
+                userId: order.userId,
+                userName: order.shippingInfo?.fullName || transformedUser.name,
+                items: order.items?.map(item => ({
+                  productId: item.product._id.toString(),
+                  productName: item.product.name,
+                  quantity: item.quantity,
+                  price: item.price,
+                  image: item.product.image
+                })) || [],
+                shippingInfo: order.shippingInfo,
+                paymentInfo: order.paymentInfo,
+                subtotal: order.subtotal,
+                shipping: order.shipping,
+                tax: order.tax,
+                total: order.total,
+                status: order.status,
+                paymentStatus: order.paymentStatus,
+                date: order.createdAt,
+                estimatedDelivery: order.estimatedDelivery,
+                cancellationInfo: order.cancellationInfo,
+                deliveryTracking: order.deliveryTracking,
+                shippingAddress: order.shippingAddress,
+                statusHistory: order.statusHistory
+              })) || [];
+
+              // Update state with loaded data
+              dispatch({
+                type: 'LOAD_USER_DATA',
+                payload: {
+                  user: transformedUser,
+                  cart: transformedCart,
+                  orders: transformedOrders
+                }
+              });
+
+            } catch (loadError) {
+              console.error('Failed to load user data:', loadError);
+              // Still log in the user even if data loading fails
+              dispatch({ type: 'LOGIN', payload: transformedUser });
+            }
           }
         } catch (error) {
           // Token expired or invalid, clear user
@@ -295,9 +362,12 @@ export const AppProvider = ({ children }) => {
           dispatch({ type: 'LOGOUT' });
         }
       }
+
+      // Initialization complete
+      setIsInitializing(false);
     };
 
-    checkAuth();
+    initializeApp();
   }, []);
 
   // Save state to localStorage whenever it changes
@@ -308,6 +378,19 @@ export const AppProvider = ({ children }) => {
     saveToLocalStorage('elitestore_cart', state.cart);
     saveToLocalStorage('elitestore_currentUser', state.currentUser);
   }, [state.users, state.orders, state.userActivities, state.cart, state.currentUser]);
+
+  // Show loading screen while initializing
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-neutral-50 via-white to-brand-primary-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-brand-primary-600 mb-4"></div>
+          <h2 className="text-2xl font-bold text-brand-primary-700 mb-2">Loading EliteStore...</h2>
+          <p className="text-brand-neutral-600">Please wait while we prepare your shopping experience</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

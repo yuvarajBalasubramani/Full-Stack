@@ -28,6 +28,16 @@ const apiCall = async (endpoint, options = {}) => {
     return await handleResponse(response);
   } catch (error) {
     console.error(`API Error (${endpoint}):`, error);
+    
+    // Provide more specific error messages
+    if (error.message === 'Failed to fetch') {
+      throw new Error('Cannot connect to server. Please ensure the backend is running on port 5000.');
+    }
+    
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('Network error. Please check your internet connection and backend server.');
+    }
+    
     throw error;
   }
 };
