@@ -1,0 +1,37 @@
+services:
+  # Backend API Service
+  - type: web
+    name: elitestore-backend
+    runtime: node
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+    healthCheckPath: /api/health
+
+  # Frontend Static Site
+  - type: web
+    name: elitestore-frontend
+    runtime: static
+    env: static
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

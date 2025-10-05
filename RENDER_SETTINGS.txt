@@ -1,0 +1,229 @@
+================================================================================
+RENDER DEPLOYMENT SETTINGS - COPY & PASTE READY
+================================================================================
+
+METHOD 1: BACKEND ONLY (Quick Test)
+================================================================================
+
+Service Type: Web Service
+Name: elitestore-backend
+Region: Oregon (US West)
+Branch: main
+Runtime: Node
+
+Root Directory:
+server
+
+Build Command:
+npm install
+
+Start Command:
+npm start
+
+Environment Variables:
+NODE_ENV=production
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE
+JWT_SECRET=your_very_long_secret_key_at_least_32_characters_long_random_string
+PORT=10000
+
+================================================================================
+
+METHOD 2: TWO SERVICES (Production - Backend)
+================================================================================
+
+Service Type: Web Service
+Name: elitestore-backend
+Region: Oregon (US West)
+Branch: main
+Runtime: Node
+
+Root Directory:
+server
+
+Build Command:
+npm install
+
+Start Command:
+npm start
+
+Environment Variables:
+NODE_ENV=production
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE
+JWT_SECRET=your_very_long_secret_key_at_least_32_characters_long_random_string
+CLIENT_URL=https://elitestore-frontend.onrender.com
+PORT=10000
+
+Health Check Path:
+/api/health
+
+================================================================================
+
+METHOD 2: TWO SERVICES (Production - Frontend)
+================================================================================
+
+Service Type: Static Site
+Name: elitestore-frontend
+Region: Oregon (US West)
+Branch: main
+
+Root Directory:
+(leave empty)
+
+Build Command:
+npm install && npm run build
+
+Publish Directory:
+dist
+
+Environment Variables:
+VITE_API_URL=https://elitestore-backend.onrender.com/api
+
+Routes:
+Type: Rewrite
+Source: /*
+Destination: /index.html
+
+================================================================================
+
+METHOD 3: SINGLE SERVICE (Simplest)
+================================================================================
+
+Service Type: Web Service
+Name: elitestore-fullstack
+Region: Oregon (US West)
+Branch: main
+Runtime: Node
+
+Root Directory:
+(leave empty)
+
+Build Command:
+npm install && npm run build && cd server && npm install
+
+Start Command:
+cd server && npm start
+
+Environment Variables:
+NODE_ENV=production
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE
+JWT_SECRET=your_very_long_secret_key_at_least_32_characters_long_random_string
+PORT=10000
+
+Health Check Path:
+/api/health
+
+================================================================================
+
+MONGODB ATLAS SETTINGS
+================================================================================
+
+Network Access:
+IP Address: 0.0.0.0/0
+Description: Allow from anywhere (Render)
+
+Database Access:
+Username: YOUR_USERNAME
+Password: YOUR_PASSWORD
+Role: Atlas admin or readWrite
+
+Connection String Format:
+mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/DATABASE?retryWrites=true&w=majority
+
+================================================================================
+
+TESTING COMMANDS
+================================================================================
+
+Health Check:
+curl https://YOUR-SERVICE.onrender.com/api/health
+
+Register User:
+curl -X POST https://YOUR-SERVICE.onrender.com/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test User","email":"test@example.com","password":"password123","role":"user"}'
+
+Login User:
+curl -X POST https://YOUR-SERVICE.onrender.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+
+================================================================================
+
+EXPECTED SUCCESS LOGS
+================================================================================
+
+Build Phase:
+==> Building...
+npm install
+added 23 packages
+✓ Build successful
+
+Deploy Phase:
+==> Deploying...
+==> Running 'npm start'
+> server@1.0.0 start
+> node src/index.js
+
+Connected to MongoDB
+Server running on port 10000
+
+================================================================================
+
+COMMON ERRORS & FIXES
+================================================================================
+
+Error: "bash: line 1: index.js: command not found"
+Fix: Change Start Command to "npm start" or "cd server && npm start"
+
+Error: "Cannot connect to MongoDB"
+Fix: Check MONGODB_URI and MongoDB Atlas Network Access (allow 0.0.0.0/0)
+
+Error: "CORS Error"
+Fix: Add CLIENT_URL environment variable with frontend URL
+
+Error: "Module not found"
+Fix: Ensure Build Command includes "npm install"
+
+Error: "Port already in use"
+Fix: Use PORT environment variable (Render sets this automatically)
+
+================================================================================
+
+NOTES
+================================================================================
+
+1. Replace YOUR_USERNAME, YOUR_PASSWORD, YOUR_CLUSTER, YOUR_DATABASE with actual values
+2. Generate a strong JWT_SECRET (use: openssl rand -base64 32)
+3. Free tier services spin down after 15 minutes of inactivity
+4. First request after spin-down takes 30-60 seconds
+5. Build times: 2-5 minutes for frontend, 1-3 minutes for backend
+6. Always check logs for detailed error messages
+7. Environment variables are case-sensitive
+8. Changes to environment variables trigger automatic redeployment
+
+================================================================================
+
+QUICK START
+================================================================================
+
+1. Choose your method (1, 2, or 3)
+2. Copy the settings above
+3. Create service in Render dashboard
+4. Paste settings
+5. Add environment variables
+6. Click "Create Web Service" or "Create Static Site"
+7. Wait for deployment
+8. Test with curl commands
+9. Open in browser
+
+================================================================================
+
+SUPPORT
+================================================================================
+
+Render Dashboard: https://dashboard.render.com/
+Render Docs: https://render.com/docs
+MongoDB Atlas: https://cloud.mongodb.com/
+GitHub Repo: https://github.com/yuvarajBalasubramani/Full-Stack
+
+================================================================================
