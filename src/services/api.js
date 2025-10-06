@@ -1,6 +1,6 @@
 // API Service for Backend Communication
-// Use environment variable in production, fallback to localhost in development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://full-stack-5-r2zh.onrender.com/api';
+// Uses environment variable in production; falls back to your Render URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://full-stack-3-fe96.onrender.com/api';
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {
@@ -32,7 +32,7 @@ const apiCall = async (endpoint, options = {}) => {
     
     // Provide more specific error messages
     if (error.message === 'Failed to fetch') {
-      throw new Error('Cannot connect to server. Please ensure the backend is running on port 5000.');
+      throw new Error('Cannot connect to server. Please ensure the backend is reachable.');
     }
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {

@@ -10,7 +10,8 @@ const ConnectionStatus = () => {
     setMessage('Checking connection...');
     
     try {
-      const response = await fetch('http://localhost:5000/api/health', {
+      const apiBase = import.meta.env.VITE_API_URL || 'https://full-stack-3-fe96.onrender.com/api';
+      const response = await fetch(`${apiBase}/health`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -27,7 +28,7 @@ const ConnectionStatus = () => {
       }
     } catch (error) {
       setStatus('disconnected');
-      setMessage('Cannot connect to backend server. Please start the server on port 5000.');
+      setMessage('Cannot connect to backend server. Please verify your API URL and backend status.');
       console.error('Connection check failed:', error);
     }
   };
