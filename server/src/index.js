@@ -19,8 +19,8 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://full-stack-tbq9-1xhnvnxgk-yuvarajs-projects-880a7a66.vercel.app", // your frontend on Vercel
-  process.env.CLIENT_URL                // optional extra for config
+  "https://full-stack-tbq9.vercel.app", // Current Vercel deployment
+  process.env.CLIENT_URL                // Additional URL from environment variable
 ].filter(Boolean);
 
 // ✅ CORS setup
