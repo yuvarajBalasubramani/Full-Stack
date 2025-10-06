@@ -18,6 +18,7 @@ const app = express();
 // ✅ Allowed origins
 const allowedOrigins = [
   "http://localhost:5173",
+    "https://full-stack-tbq9-5olz4mur8-yuvarajs-projects-880a7a66.vercel.app", // your Vercel frontend
   "http://localhost:5174",
   "https://full-stack-tbq9.vercel.app", // Current Vercel deployment
   process.env.CLIENT_URL                // Additional URL from environment variable
