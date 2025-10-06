@@ -1,17 +1,17 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+// Helper to create JWT token
 const createToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
+// REGISTER
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    console.log('Registration attempt:', { name, email, role });
-
-    // Validation
+    // Validate input
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
@@ -21,57 +21,55 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'Email already in use' });
     }
 
-    const user = await User.create({ 
-      name, 
-      email, 
+    // Create user
+    const user = await User.create({
+      name,
+      email,
       password,
-      role: role || 'user' // Include role from request
+      role: role || 'user'
     });
-    
-    console.log('User created successfully:', user._id);
-    
+
+    // Create JWT token
     const token = createToken(user._id);
 
-    res
-      .cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000
-      })
-      .status(201)
-      .json({
-        message: 'Registration successful',
-        user: {
-          _id: user._id,
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role
-        }
-      });
+    // Send token in cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Respond with user data
+    res.status(201).json({
+      message: 'Registration successful',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
   } catch (error) {
     console.error('Register error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: error.message || 'Server error during registration',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
 
+// LOGIN
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    console.log('Login attempt:', { email });
 
-    // Validation
     if (!email || !password) {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
     const user = await User.findOne({ email });
-
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
@@ -81,56 +79,50 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    console.log('Login successful:', user._id);
-
     const token = createToken(user._id);
 
-    res
-      .cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000
-      })
-      .json({
-        message: 'Login successful',
-        user: {
-          _id: user._id,
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          orderCount: user.orderCount || 0,
-          totalSpent: user.totalSpent || 0
-        }
-      });
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    }).json({
+      message: 'Login successful',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        orderCount: user.orderCount || 0,
+        totalSpent: user.totalSpent || 0
+      }
+    });
+
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: error.message || 'Server error during login',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
 
+// LOGOUT
 exports.logout = (req, res) => {
-  res
-    .clearCookie('token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-    })
-    .json({ message: 'Logged out' });
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+  }).json({ message: 'Logged out successfully' });
 };
 
+// GET PROFILE
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-password');
-
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
     res.json({ user });
   } catch (error) {
     console.error('Get profile error:', error);
