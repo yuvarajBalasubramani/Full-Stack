@@ -18,15 +18,22 @@ const app = express();
 // ✅ Allowed origins
 const allowedOrigins = [
   "http://localhost:5173",
+    "https://full-stack-tbq9-5olz4mur8-yuvarajs-projects-880a7a66.vercel.app", // your Vercel frontend
   "http://localhost:5174",
-  "https://full-stack-tbq9-5olz4mur8-yuvarajs-projects-880a7a66.vercel.app", // Vercel frontend
-  "https://full-stack-tbq9.vercel.app", // Other deployment
-  process.env.CLIENT_URL // from .env
+  "https://full-stack-tbq9.vercel.app", // Current Vercel deployment
+  process.env.CLIENT_URL                // Additional URL from environment variable
 ].filter(Boolean);
 
-// ✅ CORS setup (simpler & credentials-friendly)
+// ✅ CORS setup
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow mobile/postman
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
 
