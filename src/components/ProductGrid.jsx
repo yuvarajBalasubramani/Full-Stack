@@ -80,6 +80,11 @@ const ProductGrid = () => {
   };
 
   const handleAddToCart = async (product) => {
+    if (!state.currentUser) {
+      alert('Please login first to add items to cart');
+      return;
+    }
+
     try {
       await cartAPI.addItem(product.id, 1);
 
@@ -91,10 +96,7 @@ const ProductGrid = () => {
         }
       });
 
-      // Show a success message (optional)
       console.log(`✅ Added ${product.name} to cart`);
-
-      // You can also add a toast notification here if you have one
       alert(`✅ ${product.name} added to cart!`);
     } catch (error) {
       console.error('Failed to add item to cart:', error);
