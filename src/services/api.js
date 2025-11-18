@@ -15,13 +15,15 @@ const handleResponse = async (response) => {
 
 // Helper function to make API calls with credentials
 const apiCall = async (endpoint, options = {}) => {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
   const config = {
     ...options,
-    credentials: 'include', // Important: Include cookies for authentication
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    credentials: 'include',
+    headers,
   };
 
   try {
@@ -30,7 +32,6 @@ const apiCall = async (endpoint, options = {}) => {
   } catch (error) {
     console.error(`API Error (${endpoint}):`, error);
     
-    // Provide more specific error messages
     if (error.message === 'Failed to fetch') {
       throw new Error('Cannot connect to server. Please ensure the backend is reachable.');
     }
